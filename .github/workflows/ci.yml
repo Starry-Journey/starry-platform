@@ -1,4 +1,4 @@
-name: Platform CI
+name: CI
 
 on:
   push:
@@ -41,3 +41,19 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y shellcheck
       - name: ShellCheck
         run: shellcheck apps/backup/backup.sh
+
+  # 汇总门禁：ruleset 的必需检查名是 CI / build
+  build:
+    needs: [python, shellcheck]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All checks passed
+        run: echo "python + shellcheck passed"
+
+  pr-title:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
