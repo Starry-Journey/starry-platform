@@ -40,8 +40,13 @@ if [ -f /var/lib/news-radar/run.log ]; then
 fi
 
 if [ "$fail" -ne 0 ] && [ -n "${ALERT_WEBHOOK:-}" ]; then
-  curl -s -X POST -H 'Content-Type: application/json' \
-    -d "{\"text\":\"Starry Journey 健康检查失败：$msg\"}" "$ALERT_WEBHOOK" >/dev/null || true
+  text="Starry Journey 健康检查失败：$msg"
+  case "${ALERT_WEBHOOK_FORMAT:-raw}" in
+    feishu) payload=$(python3 -c 'import json,sys;print(json.dumps({"msg_type":"text","content":{"text":sys.argv[1]}}))' "$text") ;;
+    discord) payload=$(python3 -c 'import json,sys;print(json.dumps({"content":sys.argv[1]}))' "$text") ;;
+    *) payload=$(python3 -c 'import json,sys;print(json.dumps({"text":sys.argv[1]}))' "$text") ;;
+  esac
+  curl -s -X POST -H 'Content-Type: application/json' -d "$payload" "$ALERT_WEBHOOK" >/dev/null || true
 fi
 
 exit "$fail"
