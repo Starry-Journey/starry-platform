@@ -1,0 +1,132 @@
+# ============================================================
+# 东京新闻雷达 · 配置
+# 定位：围绕「个人成长与拓展视野」的每日资讯
+# 类别：科技 / 开源工具 / 创意艺术 / 经济商业 / 科学 / 生活文化
+# ============================================================
+
+timezone: Asia/Shanghai
+
+fetch:
+  timeout: 15
+  workers: 6
+  max_age_days: 3
+
+digest:
+  min_score: 7
+  max_items: 18
+  title: "每日简报"
+
+output:
+  posts_dir: "source/news"
+  tags: ["每日简报", "东京新闻雷达"]
+
+llm:
+  base_url: "https://api.deepseek.com/v1"
+  model: "deepseek-chat"
+  api_key_env: "DEEPSEEK_API_KEY"
+  batch_size: 8
+  max_summary_chars: 600
+  temperature: 0.4
+
+feeds:
+  # ---------- 科技 ----------
+  - name: Hacker News
+    url: "https://hnrss.org/frontpage"
+    category: "科技"
+  - name: The Verge
+    url: "https://www.theverge.com/rss/index.xml"
+    category: "科技"
+  - name: Ars Technica
+    url: "https://feeds.arstechnica.com/arstechnica/index"
+    category: "科技"
+  - name: The Verge AI
+    url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml"
+    category: "科技"
+    max_items_per_feed: 8
+  - name: Hugging Face Blog
+    url: "https://huggingface.co/blog/feed.xml"
+    category: "科技"
+    max_items_per_feed: 8
+
+  # ---------- 开源工具 ----------
+  - name: GitHub Trending（日榜）
+    url: "https://github.com/trending?since=daily"
+    category: "开源工具"
+    type: "html"
+    selector: "article.Box-row"
+  - name: Hacker News Show HN
+    url: "https://hnrss.org/show"
+    category: "开源工具"
+    max_items_per_feed: 8
+  - name: Product Hunt
+    url: "https://www.producthunt.com/feed"
+    category: "开源工具"
+    max_items_per_feed: 10
+  - name: dev.to
+    url: "https://dev.to/feed"
+    category: "开源工具"
+    max_items_per_feed: 8
+
+  # ---------- 创意艺术 ----------
+  - name: Colossal（视觉艺术）
+    url: "https://www.thisiscolossal.com/feed/"
+    category: "创意艺术"
+    max_items_per_feed: 6
+  - name: Cartoon Brew（动画）
+    url: "https://www.cartoonbrew.com/feed"
+    category: "创意艺术"
+    max_items_per_feed: 6
+  - name: Creative Bloq（设计）
+    url: "https://www.creativebloq.com/feeds/all"
+    category: "创意艺术"
+    max_items_per_feed: 6
+  - name: Fxguide（视效/影像）
+    url: "https://www.fxguide.com/feed/"
+    category: "创意艺术"
+    max_items_per_feed: 6
+
+  # ---------- 经济商业 ----------
+  - name: The Economist 财经
+    url: "https://www.economist.com/finance-and-economics/rss.xml"
+    category: "经济商业"
+    max_items_per_feed: 10
+  - name: TechCrunch
+    url: "https://techcrunch.com/feed/"
+    category: "经济商业"
+    max_items_per_feed: 8
+  - name: Fast Company
+    url: "https://www.fastcompany.com/rss"
+    category: "经济商业"
+    max_items_per_feed: 8
+
+  # ---------- 科学 ----------
+  - name: Quanta Magazine
+    url: "https://www.quantamagazine.org/feed/"
+    category: "科学"
+    max_items_per_feed: 5
+  - name: IEEE Spectrum
+    url: "https://spectrum.ieee.org/feeds/feed.rss"
+    category: "科学"
+    max_items_per_feed: 8
+  - name: ScienceDaily 综合
+    url: "https://www.sciencedaily.com/rss/all.xml"
+    category: "科学"
+    max_items_per_feed: 10
+
+  # ---------- 生活文化 ----------
+  - name: Aeon
+    url: "https://aeon.co/feed.rss"
+    category: "生活文化"
+    max_items_per_feed: 6
+  - name: The Marginalian
+    url: "https://www.themarginalian.org/feed/"
+    category: "生活文化"
+    max_items_per_feed: 5
+  - name: 阮一峰的网络日志
+    url: "https://www.ruanyifeng.com/blog/atom.xml"
+    category: "生活文化"
+    max_items_per_feed: 3
+  - name: 少数派
+    url: "https://sspai.com/feed"
+    category: "生活文化"
+    max_items_per_feed: 3

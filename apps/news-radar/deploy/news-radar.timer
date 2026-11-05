@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Tokyo News Radar daily at 08:00 Asia/Shanghai
+
+[Timer]
+OnCalendar=*-*-* 08:00:00 Asia/Shanghai
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

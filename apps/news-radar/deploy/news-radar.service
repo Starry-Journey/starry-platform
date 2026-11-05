@@ -1,0 +1,10 @@
+[Unit]
+Description=Tokyo News Radar - fetch, score and publish daily digest
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/news-radar/deploy/run.sh
+TimeoutStartSec=600
+Nice=10

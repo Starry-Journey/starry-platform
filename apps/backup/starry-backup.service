@@ -1,0 +1,7 @@
+[Unit]
+Description=Starry Journey backup (scripts + encrypted secrets)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/starry-backup.sh
+Nice=10
