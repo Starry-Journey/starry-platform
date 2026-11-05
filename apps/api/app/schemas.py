@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -35,3 +35,20 @@ class CommentList(BaseModel):
 class ChatIn(BaseModel):
     message: str = Field(min_length=1, max_length=2000)
     conversation_id: Optional[int] = None
+
+
+class ChartIn(BaseModel):
+    birth_date: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+    birth_time: str = Field(pattern=r"^\d{2}:\d{2}$")
+    timezone: str = Field(min_length=1, max_length=64)
+    latitude: float = Field(ge=-90, le=90)
+    longitude: float = Field(ge=-180, le=180)
+    house_system: str = Field(default="P", pattern=r"^[A-Z]$")
+
+
+class ChartOut(BaseModel):
+    id: int
+    planets: List[Dict[str, Any]]
+    houses: List[Dict[str, Any]]
+    aspects: List[Dict[str, Any]]
+    created_at: datetime

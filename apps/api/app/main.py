@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from . import db
 from .config import settings
-from .routers import auth, chat, comments, health
+from .routers import auth, charts, chat, comments, health
 
 
 def create_app(database_url: Optional[str] = None) -> FastAPI:
@@ -31,9 +31,11 @@ def create_app(database_url: Optional[str] = None) -> FastAPI:
     )
 
     app.include_router(health.router)
+    app.include_router(health.router, prefix="/v1")
     app.include_router(auth.router)
     app.include_router(comments.router)
     app.include_router(chat.router)
+    app.include_router(charts.router)
 
     return app
 
