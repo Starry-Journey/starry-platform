@@ -9,8 +9,8 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from ..config import settings
 from .. import db as dbmod
+from ..config import settings
 from ..db import get_db
 from ..models import Conversation, Message, User
 from ..schemas import ChatIn
