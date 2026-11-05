@@ -105,7 +105,7 @@ find "$REPO" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
 cp -a "$STAGE/." "$REPO/"
 
 # 加密包只保留最近 N 份
-ls -1t "$REPO/secrets/"secrets-*.tar.gz.enc 2>/dev/null | tail -n +$((KEEP_SECRETS + 1)) | xargs -r rm -f
+find "$REPO/secrets" -name "secrets-*.tar.gz.enc" -printf "%T@ %p\n" 2>/dev/null | sort -rn | tail -n +$((KEEP_SECRETS + 1)) | cut -d" " -f2- | xargs -r rm -f
 
 cd "$REPO"
 git config user.name "backup-bot"

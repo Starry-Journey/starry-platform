@@ -1,0 +1,6 @@
+[Unit]
+Description=Starry Journey health check
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/starry-healthcheck.sh

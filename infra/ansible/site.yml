@@ -1,0 +1,62 @@
+---
+- name: Starry Journey VPS baseline
+  hosts: vps
+  become: true
+  gather_facts: true
+
+  vars:
+    packages:
+      - python3-pip
+      - git
+      - nginx
+      - certbot
+      - python3-certbot-nginx
+      - g++
+      - nlohmann-json3-dev
+      - sqlite3
+      - ufw
+      - fail2ban
+
+  tasks:
+    - name: Install baseline packages
+      ansible.builtin.apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: true
+
+    - name: Set timezone
+      ansible.builtin.timezone:
+        name: Asia/Shanghai
+
+    - name: Allow SSH / HTTP / HTTPS / comments port
+      community.general.ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop: ["22", "80", "443", "8443"]
+
+    - name: Enable ufw
+      community.general.ufw:
+        state: enabled
+        policy: deny
+        direction: incoming
+
+    - name: Ensure fail2ban is running
+      ansible.builtin.service:
+        name: fail2ban
+        state: started
+        enabled: true
+
+    - name: Create application directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      loop:
+        - /opt/news-radar
+        - /opt/chatbot
+        - /opt/chat-server
+        - /srv/news-radar
+        - /var/lib/news-radar
+        - /var/lib/chat-server
+        - /etc/starry
