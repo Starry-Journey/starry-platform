@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [news-radar, chatbot]
+        app: [news-radar, chatbot, api]
     defaults:
       run:
         working-directory: apps/${{ matrix.app }}

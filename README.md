@@ -7,6 +7,7 @@ Starry Journey 的服务端与运维代码：新闻雷达、AI 助手、备份�
 ```
 apps/news-radar/   外网资讯抓取 + DeepSeek 打分 + 生成简报
 apps/chatbot/      博客 AI 助手后端（DeepSeek）
+apps/api/          统一后端（FastAPI：评论 / 聊天 SSE）
 apps/backup/       服务器状态备份脚本与 systemd 单元
 infra/             基础设施即代码（规划中）
 ```
