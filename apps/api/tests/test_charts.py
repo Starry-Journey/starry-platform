@@ -28,6 +28,7 @@ def test_chart_flow(client, monkeypatch):
         "/v1/charts",
         headers=headers,
         json={
+            "label": "上海 · 测试盘",
             "birth_date": "2000-01-01",
             "birth_time": "08:30",
             "timezone": "Asia/Shanghai",
@@ -36,7 +37,12 @@ def test_chart_flow(client, monkeypatch):
         },
     )
     assert created.status_code == 201, created.text
+    assert created.json()["label"] == "上海 · 测试盘"
     chart_id = created.json()["id"]
+
+    listed = client.get("/v1/charts", headers=headers)
+    assert listed.status_code == 200
+    assert listed.json()[0]["label"] == "上海 · 测试盘"
 
     got = client.get(f"/v1/charts/{chart_id}", headers=headers)
     assert got.status_code == 200
@@ -46,10 +52,18 @@ def test_chart_flow(client, monkeypatch):
     assert client.get(f"/v1/charts/{chart_id}", headers=headers).status_code == 404
 
 
+def test_metrics_endpoint(client):
+    client.get("/healthz")
+    resp = client.get("/metrics")
+    assert resp.status_code == 200
+    assert "starry_http_requests_total" in resp.text
+
+
 def test_chart_requires_auth(client):
     resp = client.post(
         "/v1/charts",
         json={
+            "label": "上海 · 测试盘",
             "birth_date": "2000-01-01",
             "birth_time": "08:30",
             "timezone": "Asia/Shanghai",
