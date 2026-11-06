@@ -18,6 +18,12 @@ from .routers import auth, charts, chat, comments, health
 REQUESTS = Counter("starry_http_requests_total", "HTTP requests", ["method", "path", "status"])
 LATENCY = Histogram("starry_http_request_seconds", "HTTP latency", ["method", "path"])
 access_log = logging.getLogger("starry.access")
+if not access_log.handlers:
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(logging.Formatter("%(message)s"))
+    access_log.addHandler(_handler)
+    access_log.setLevel(logging.INFO)
+    access_log.propagate = False
 
 
 def create_app(database_url: Optional[str] = None) -> FastAPI:

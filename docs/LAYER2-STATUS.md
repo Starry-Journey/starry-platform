@@ -26,3 +26,10 @@ curl -N -X POST -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/
 ## 环境变量（/etc/starry/env）
 
 `DATABASE_URL`、`ADMIN_TOKEN`、`CHART_ENC_KEY`、`DEEPSEEK_API_KEY`、`DAILY_MESSAGE_LIMIT`
+
+## 2026-11-06 更新
+
+- 数据库：SQLite → PostgreSQL 14（本地实例），已迁移 users/tokens/comments/conversations/messages/charts
+- 旧 C++ 评论服务已停止并禁用，nginx `/` 不再反代 8888
+- 观测：`/metrics`（Prometheus 文本格式，仅本机可访问）、JSON 访问日志写入 journald
+- 星盘：`label` 字段、`GET /v1/charts` 列表、前端城市搜索与多盘保存
