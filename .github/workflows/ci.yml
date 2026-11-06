@@ -44,6 +44,7 @@ jobs:
 
   # 汇总门禁：ruleset 的必需检查名是 CI / build
   build:
+    name: CI / build
     needs: [python, shellcheck]
     runs-on: ubuntu-latest
     steps:
@@ -51,6 +52,7 @@ jobs:
         run: echo "python + shellcheck passed"
 
   pr-title:
+    name: CI / pr-title
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
