@@ -72,3 +72,50 @@ def test_chart_requires_auth(client):
         },
     )
     assert resp.status_code == 401
+
+
+def test_chart_reading_cached(client, monkeypatch):
+    from cryptography.fernet import Fernet
+
+    from app import config
+
+    monkeypatch.setattr(config.settings, "chart_enc_key", Fernet.generate_key().decode())
+    calls = {"n": 0}
+
+    async def fake_reading(chart):
+        calls["n"] += 1
+        return "这是一段温柔的星盘解读。"
+
+    monkeypatch.setattr(charts, "generate_reading", fake_reading)
+    monkeypatch.setattr(
+        charts,
+        "compute_chart",
+        lambda dt, lat, lon, hsys: {
+            "planets": [{"name": "Sun", "sign": "Capricorn", "degree": 9.9}],
+            "houses": [{"house": 1, "sign": "Aquarius", "degree": 4.5}],
+            "aspects": [],
+            "ascendant": {"sign": "Aquarius", "degree": 4.5},
+            "midheaven": {"sign": "Capricorn", "degree": 1.0},
+        },
+    )
+    headers = {"Authorization": f"Bearer {device(client)}"}
+    created = client.post(
+        "/v1/charts",
+        headers=headers,
+        json={
+            "label": "解读测试",
+            "birth_date": "2000-01-01",
+            "birth_time": "08:30",
+            "timezone": "Asia/Shanghai",
+            "latitude": 31.23,
+            "longitude": 121.47,
+        },
+    )
+    chart_id = created.json()["id"]
+
+    first = client.post(f"/v1/charts/{chart_id}/reading", headers=headers)
+    assert first.status_code == 200
+    assert first.json()["cached"] is False
+    second = client.post(f"/v1/charts/{chart_id}/reading", headers=headers)
+    assert second.json()["cached"] is True
+    assert calls["n"] == 1

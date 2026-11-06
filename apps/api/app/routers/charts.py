@@ -14,12 +14,14 @@ from ..astrology import compute_chart as default_compute_chart
 from ..config import settings
 from ..db import get_db
 from ..models import Chart, User
+from ..reading import generate_reading as default_generate_reading
 from ..schemas import ChartIn, ChartOut, ChartSummary
 from ..security import current_user
 
 router = APIRouter(prefix="/v1/charts", tags=["charts"])
 
 compute_chart = default_compute_chart
+generate_reading = default_generate_reading
 
 
 def _fernet() -> Fernet:
@@ -109,9 +111,26 @@ def get_chart(
     return {
         "id": record.id,
         "label": record.label,
+        "reading": record.reading,
         **data,
         "created_at": record.created_at,
     }
+
+
+@router.post("/{chart_id}/reading")
+async def read_chart(
+    chart_id: int,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    record = _owned(db, chart_id, user)
+    if record.reading:
+        return {"reading": record.reading, "cached": True}
+    chart = json.loads(record.chart_json)
+    text = await generate_reading(chart)
+    record.reading = text
+    db.commit()
+    return {"reading": text, "cached": False}
 
 
 @router.delete("/{chart_id}", status_code=204)

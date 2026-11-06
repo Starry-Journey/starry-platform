@@ -32,6 +32,9 @@ def init_db() -> None:
         if "label" not in cols:
             with engine.begin() as conn:
                 conn.execute(text("ALTER TABLE charts ADD COLUMN label VARCHAR(80) DEFAULT ''"))
+        if "reading" not in cols:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE charts ADD COLUMN reading TEXT DEFAULT ''"))
 
 
 def get_db():

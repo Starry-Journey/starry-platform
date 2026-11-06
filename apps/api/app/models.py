@@ -68,6 +68,7 @@ class Chart(Base):
     label: Mapped[str] = mapped_column(String(80), default="")
     encrypted_birth: Mapped[str] = mapped_column(Text)
     chart_json: Mapped[str] = mapped_column(Text)
+    reading: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 

@@ -50,6 +50,7 @@ class ChartIn(BaseModel):
 class ChartOut(BaseModel):
     id: int
     label: str = ""
+    reading: str = ""
     planets: List[Dict[str, Any]]
     houses: List[Dict[str, Any]]
     aspects: List[Dict[str, Any]]

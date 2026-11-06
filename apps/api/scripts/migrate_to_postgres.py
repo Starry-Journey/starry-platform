@@ -1,4 +1,5 @@
 """把 SQLite 数据迁移到 Postgres（一次性脚本）。"""
+
 import sys
 
 from sqlalchemy import create_engine, insert, select, text
