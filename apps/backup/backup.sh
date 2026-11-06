@@ -53,6 +53,11 @@ SECRETS="$WORK/secrets"
 mkdir -p "$SECRETS"
 cp -a /etc/starry/env "$SECRETS/starry.env" 2>/dev/null || true
 cp -a /etc/sing-box/config.json "$SECRETS/sing-box-config.json" 2>/dev/null || true
+# Postgres 逻辑备份
+if command -v pg_dump >/dev/null 2>&1 && [ -f /root/.starry_pg ]; then
+  PGPASS=$(sed -n 's/^PGPASS=//p' /root/.starry_pg)
+  PGPASSWORD="$PGPASS" pg_dump -h 127.0.0.1 -U starry starry 2>/dev/null | gzip > "$SECRETS/starry-db.sql.gz" || true
+fi
 tar czf "$WORK/secrets-$DATE.tar.gz" -C "$SECRETS" .
 openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt \
   -pass "file:$PASS_FILE" -in "$WORK/secrets-$DATE.tar.gz" \
@@ -105,7 +110,7 @@ find "$REPO" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
 cp -a "$STAGE/." "$REPO/"
 
 # 加密包只保留最近 N 份
-find "$REPO/secrets" -name "secrets-*.tar.gz.enc" -printf "%T@ %p\n" 2>/dev/null | sort -rn | tail -n +$((KEEP_SECRETS + 1)) | cut -d" " -f2- | xargs -r rm -f
+ls -1t "$REPO/secrets/"secrets-*.tar.gz.enc 2>/dev/null | tail -n +$((KEEP_SECRETS + 1)) | xargs -r rm -f
 
 cd "$REPO"
 git config user.name "backup-bot"

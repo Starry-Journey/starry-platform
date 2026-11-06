@@ -21,7 +21,7 @@ openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 \
   -pass "pass:$BACKUP_PASSPHRASE" -in "$LATEST" | tar -xz -C "$WORK"
 
 fail=0
-for f in starry.env sing-box-config.json; do
+for f in starry.env starry-db.sql.gz sing-box-config.json; do
   if [ -s "$WORK/$f" ]; then echo "✓ secrets/$f"; else echo "✗ secrets/$f"; fail=1; fi
 done
 
