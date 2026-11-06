@@ -53,6 +53,11 @@ SECRETS="$WORK/secrets"
 mkdir -p "$SECRETS"
 cp -a /etc/starry/env "$SECRETS/starry.env" 2>/dev/null || true
 cp -a /etc/sing-box/config.json "$SECRETS/sing-box-config.json" 2>/dev/null || true
+# Postgres 逻辑备份
+if command -v pg_dump >/dev/null 2>&1 && [ -f /root/.starry_pg ]; then
+  PGPASS=$(sed -n 's/^PGPASS=//p' /root/.starry_pg)
+  PGPASSWORD="$PGPASS" pg_dump -h 127.0.0.1 -U starry starry 2>/dev/null | gzip > "$SECRETS/starry-db.sql.gz" || true
+fi
 tar czf "$WORK/secrets-$DATE.tar.gz" -C "$SECRETS" .
 openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt \
   -pass "file:$PASS_FILE" -in "$WORK/secrets-$DATE.tar.gz" \

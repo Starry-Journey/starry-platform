@@ -20,9 +20,21 @@ def configure(url: str) -> None:
 
 
 def init_db() -> None:
+    from sqlalchemy import inspect, text
+
     from . import models  # noqa: F401  确保模型注册
 
     Base.metadata.create_all(bind=engine)
+    # 轻量迁移：老库补 charts.label
+    insp = inspect(engine)
+    if "charts" in insp.get_table_names():
+        cols = {c["name"] for c in insp.get_columns("charts")}
+        if "label" not in cols:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE charts ADD COLUMN label VARCHAR(80) DEFAULT ''"))
+        if "reading" not in cols:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE charts ADD COLUMN reading TEXT DEFAULT ''"))
 
 
 def get_db():

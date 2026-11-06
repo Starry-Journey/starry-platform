@@ -38,6 +38,7 @@ class ChatIn(BaseModel):
 
 
 class ChartIn(BaseModel):
+    label: str = Field(default="", max_length=80)
     birth_date: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
     birth_time: str = Field(pattern=r"^\d{2}:\d{2}$")
     timezone: str = Field(min_length=1, max_length=64)
@@ -48,7 +49,15 @@ class ChartIn(BaseModel):
 
 class ChartOut(BaseModel):
     id: int
+    label: str = ""
+    reading: str = ""
     planets: List[Dict[str, Any]]
     houses: List[Dict[str, Any]]
     aspects: List[Dict[str, Any]]
+    created_at: datetime
+
+
+class ChartSummary(BaseModel):
+    id: int
+    label: str
     created_at: datetime

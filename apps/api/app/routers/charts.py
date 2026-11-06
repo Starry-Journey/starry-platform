@@ -2,23 +2,26 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import pytz
 from cryptography.fernet import Fernet
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..astrology import compute_chart as default_compute_chart
 from ..config import settings
 from ..db import get_db
 from ..models import Chart, User
-from ..schemas import ChartIn, ChartOut
+from ..reading import generate_reading as default_generate_reading
+from ..schemas import ChartIn, ChartOut, ChartSummary
 from ..security import current_user
 
 router = APIRouter(prefix="/v1/charts", tags=["charts"])
 
 compute_chart = default_compute_chart
+generate_reading = default_generate_reading
 
 
 def _fernet() -> Fernet:
@@ -62,6 +65,7 @@ def create_chart(
 
     record = Chart(
         user_id=user.id,
+        label=payload.label,
         encrypted_birth=encrypted,
         chart_json=json.dumps(chart, ensure_ascii=False),
         expires_at=datetime.now(timezone.utc) + timedelta(days=90),
@@ -72,6 +76,7 @@ def create_chart(
 
     return {
         "id": record.id,
+        "label": record.label,
         **chart,
         "created_at": record.created_at,
     }
@@ -84,6 +89,17 @@ def _owned(db: Session, chart_id: int, user: User) -> Chart:
     return record
 
 
+@router.get("", response_model=List[ChartSummary])
+def list_charts(
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    rows = db.scalars(
+        select(Chart).where(Chart.user_id == user.id).order_by(Chart.created_at.desc()).limit(50)
+    ).all()
+    return [{"id": r.id, "label": r.label or "未命名星盘", "created_at": r.created_at} for r in rows]
+
+
 @router.get("/{chart_id}", response_model=ChartOut)
 def get_chart(
     chart_id: int,
@@ -92,7 +108,29 @@ def get_chart(
 ):
     record = _owned(db, chart_id, user)
     data: Dict[str, Any] = json.loads(record.chart_json)
-    return {"id": record.id, **data, "created_at": record.created_at}
+    return {
+        "id": record.id,
+        "label": record.label,
+        "reading": record.reading,
+        **data,
+        "created_at": record.created_at,
+    }
+
+
+@router.post("/{chart_id}/reading")
+async def read_chart(
+    chart_id: int,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    record = _owned(db, chart_id, user)
+    if record.reading:
+        return {"reading": record.reading, "cached": True}
+    chart = json.loads(record.chart_json)
+    text = await generate_reading(chart)
+    record.reading = text
+    db.commit()
+    return {"reading": text, "cached": False}
 
 
 @router.delete("/{chart_id}", status_code=204)
