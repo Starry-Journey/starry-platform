@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     admin_token: str = ""
     allowed_origins: str = "https://starry-journey.github.io,http://localhost:4000,http://127.0.0.1:4000"
     daily_message_limit: int = 20
+    chart_enc_key: str = ""
 
 
 settings = Settings()

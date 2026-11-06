@@ -60,6 +60,17 @@ class Conversation(Base):
     messages: Mapped[List["Message"]] = relationship(back_populates="conversation")
 
 
+class Chart(Base):
+    __tablename__ = "charts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    encrypted_birth: Mapped[str] = mapped_column(Text)
+    chart_json: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class Message(Base):
     __tablename__ = "messages"
 
