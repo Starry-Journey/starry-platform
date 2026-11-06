@@ -20,7 +20,7 @@ check() {
 }
 
 check "博客" "https://starry-journey.github.io/"
-check "评论 API" "https://starryjourney.duckdns.org:8443/api/history?room=health&limit=1"
+check "评论 API" "https://starryjourney.duckdns.org:8443/v1/comments?room=health&limit=1"
 check "AI 助手" "https://starryjourney.duckdns.org:8443/v1/healthz"
 
 if command -v pg_isready >/dev/null 2>&1; then
@@ -35,7 +35,7 @@ fi
 
 # 雷达最近 26 小时内是否成功跑过
 if [ -f /var/lib/news-radar/run.log ]; then
-  last=$(grep 'run done' /var/lib/news-radar/run.log | tail -1 | cut -d' ' -f2)
+  last=$(grep 'run done' /var/lib/news-radar/run.log | tail -1 | awk '{print $2" "$3}')
   if [ -n "$last" ]; then
     last_ts=$(date -d "$last" +%s 2>/dev/null || echo 0)
     now=$(date +%s)
