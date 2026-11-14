@@ -32,6 +32,10 @@ cd "$BLOG_REPO"
 git fetch -q origin main >> "$LOG" 2>&1
 git reset --hard -q origin/main >> "$LOG" 2>&1
 
+# main 有分支保护，改推日期分支，由 GitHub Actions 自动开 PR 并合并
+BRANCH="news-$(date +%F)"
+git checkout -q -B "$BRANCH"
+
 # 把新简报同步进博客仓库（只写脚本自己生成的目录，绝不动手写文章）
 mkdir -p source/news
 cp -a /tmp/news-radar-out/source/news/. source/news/
@@ -41,10 +45,10 @@ git config user.email "news-radar@users.noreply.github.com"
 if git status --porcelain -- source/news | grep -q .; then
   git add source/news
   git commit -q -m "chore(news): update daily digest $(date +%F)" >> "$LOG" 2>&1
-  if GIT_SSH_COMMAND="ssh -i /root/.ssh/blog_push -o IdentitiesOnly=yes" git push -q origin main >> "$LOG" 2>&1; then
-    echo "pushed $(date +%F)" >> "$LOG"
+  if GIT_SSH_COMMAND="ssh -i /root/.ssh/blog_push -o IdentitiesOnly=yes" git push -f -q origin "$BRANCH" >> "$LOG" 2>&1; then
+    echo "pushed branch $BRANCH" >> "$LOG"
   else
-    echo "push FAILED $(date +%F)" >> "$LOG" >&2
+    echo "push FAILED $BRANCH" >> "$LOG" >&2
     exit 1
   fi
 else
