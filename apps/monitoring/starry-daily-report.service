@@ -1,0 +1,6 @@
+[Unit]
+Description=Starry Journey daily Feishu report
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/starry-daily-report.sh
