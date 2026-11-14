@@ -61,3 +61,12 @@ class ChartSummary(BaseModel):
     id: int
     label: str
     created_at: datetime
+
+
+class TransitIn(BaseModel):
+    at: Optional[str] = None
+
+
+class SynastryIn(BaseModel):
+    a_id: int
+    b_id: int
