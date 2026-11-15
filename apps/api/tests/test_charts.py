@@ -119,3 +119,65 @@ def test_chart_reading_cached(client, monkeypatch):
     second = client.post(f"/v1/charts/{chart_id}/reading", headers=headers)
     assert second.json()["cached"] is True
     assert calls["n"] == 1
+
+
+def test_transits_and_synastry(client, monkeypatch):
+    from cryptography.fernet import Fernet
+
+    from app import config
+
+    monkeypatch.setattr(config.settings, "chart_enc_key", Fernet.generate_key().decode())
+    monkeypatch.setattr(
+        charts,
+        "compute_chart",
+        lambda dt, lat, lon, hsys: {
+            "planets": [{"name": "Sun", "sign": "Capricorn", "degree": 9.9}],
+            "houses": [{"house": 1, "sign": "Aquarius", "degree": 4.5}],
+            "aspects": [],
+            "ascendant": {"sign": "Aquarius", "degree": 4.5},
+            "midheaven": {"sign": "Capricorn", "degree": 1.0},
+        },
+    )
+    monkeypatch.setattr(
+        charts,
+        "compute_transits",
+        lambda natal, when: {
+            "when": when.isoformat(),
+            "planets": [{"name": "Jupiter", "sign": "Aries", "degree": 2.0}],
+            "aspects": [{"a": "Jupiter", "b": "Sun", "type": "trine", "orb": 1.2}],
+            "summary": "1 个和谐相位，0 个挑战相位",
+        },
+    )
+    monkeypatch.setattr(
+        charts,
+        "compute_synastry",
+        lambda a, b: {
+            "aspects": [{"a": "Sun", "b": "Moon", "type": "sextile", "orb": 2.0}],
+            "score": 60,
+            "counts": {"harmonious": 1, "challenging": 0, "total": 1},
+            "summary": "和谐 1 个，挑战 0 个",
+        },
+    )
+    headers = {"Authorization": f"Bearer {device(client)}"}
+    payload = {
+        "birth_date": "2000-01-01",
+        "birth_time": "08:30",
+        "timezone": "Asia/Shanghai",
+        "latitude": 31.23,
+        "longitude": 121.47,
+    }
+    a = client.post("/v1/charts", headers=headers, json={**payload, "label": "A"}).json()
+    b = client.post("/v1/charts", headers=headers, json={**payload, "label": "B"}).json()
+
+    tr = client.post(f"/v1/charts/{a['id']}/transits", headers=headers, json={})
+    assert tr.status_code == 200
+    assert tr.json()["aspects"][0]["type"] == "trine"
+
+    syn = client.post(
+        "/v1/charts/synastry",
+        headers=headers,
+        json={"a_id": a["id"], "b_id": b["id"]},
+    )
+    assert syn.status_code == 200
+    assert syn.json()["score"] == 60
+    assert syn.json()["a_label"] == "A"

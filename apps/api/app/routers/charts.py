@@ -10,18 +10,28 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..astrology import compute_chart as default_compute_chart
+from ..astrology import (
+    compute_chart as default_compute_chart,
+)
+from ..astrology import (
+    compute_synastry as default_compute_synastry,
+)
+from ..astrology import (
+    compute_transits as default_compute_transits,
+)
 from ..config import settings
 from ..db import get_db
 from ..models import Chart, User
 from ..reading import generate_reading as default_generate_reading
-from ..schemas import ChartIn, ChartOut, ChartSummary
+from ..schemas import ChartIn, ChartOut, ChartSummary, SynastryIn, TransitIn
 from ..security import current_user
 
 router = APIRouter(prefix="/v1/charts", tags=["charts"])
 
 compute_chart = default_compute_chart
 generate_reading = default_generate_reading
+compute_transits = default_compute_transits
+compute_synastry = default_compute_synastry
 
 
 def _fernet() -> Fernet:
@@ -89,6 +99,26 @@ def _owned(db: Session, chart_id: int, user: User) -> Chart:
     return record
 
 
+@router.post("/synastry")
+def synastry(
+    payload: SynastryIn,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    a = _owned(db, payload.a_id, user)
+    b = _owned(db, payload.b_id, user)
+    if a.id == b.id:
+        raise HTTPException(status_code=422, detail="请选择两张不同的星盘")
+    result = compute_synastry(json.loads(a.chart_json), json.loads(b.chart_json))
+    return {
+        "a_id": a.id,
+        "a_label": a.label or "未命名星盘",
+        "b_id": b.id,
+        "b_label": b.label or "未命名星盘",
+        **result,
+    }
+
+
 @router.get("", response_model=List[ChartSummary])
 def list_charts(
     user: User = Depends(current_user),
@@ -98,6 +128,28 @@ def list_charts(
         select(Chart).where(Chart.user_id == user.id).order_by(Chart.created_at.desc()).limit(50)
     ).all()
     return [{"id": r.id, "label": r.label or "未命名星盘", "created_at": r.created_at} for r in rows]
+
+
+@router.post("/{chart_id}/transits")
+def transits(
+    chart_id: int,
+    payload: TransitIn,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    record = _owned(db, chart_id, user)
+    if payload.at:
+        try:
+            when = datetime.fromisoformat(payload.at.replace("Z", "+00:00"))
+        except ValueError:
+            raise HTTPException(status_code=422, detail="时间格式应为 ISO 8601")
+        if when.tzinfo is None:
+            when = when.replace(tzinfo=timezone.utc)
+        when = when.astimezone(timezone.utc)
+    else:
+        when = datetime.now(timezone.utc)
+    result = compute_transits(json.loads(record.chart_json), when)
+    return {"chart_id": record.id, "label": record.label or "未命名星盘", **result}
 
 
 @router.get("/{chart_id}", response_model=ChartOut)
